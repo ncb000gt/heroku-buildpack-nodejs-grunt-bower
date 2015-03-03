@@ -169,6 +169,28 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
   fi
 )
 
+# Check and run Grunt
+(
+  if [ -f $build_dir/bower.json ]; then
+    # get the env vars
+    if [ -d "$env_dir" ]; then
+      status "Exporting config vars to environment"
+      export_env_dir $env_dir
+    fi
+
+    # make sure that grunt and grunt-cli are installed locally
+    npm install bower
+    echo "-----> Found bower config, running bower heroku:$NODE_ENV task"
+    $build_dir/node_modules/.bin/bower heroku:$NODE_ENV
+
+    status "Pruning dev dependencies"
+    npm prune --production 2>&1 | indent
+
+  else
+    echo "-----> No bower config (bower.json) found"
+  fi
+)
+
 # Post package.json to nomnom service
 # Use a subshell so failures won't break the build.
 (
